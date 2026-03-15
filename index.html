@@ -103,7 +103,11 @@
                 sel.appendChild(opt);
             });
             log("同期成功。");
-        } catch (e) { log("取得失敗：中継サーバーが混雑している可能性があります。", "#ff7491"); }
+      // これを
+const PROXY = "https://corsproxy.io/?"; 
+
+// これに変えてみる（候補A）
+const PROXY = "https://api.allorigins.win/raw?url=";
     }
 
     function stopTask() { isRunning = false; log("停止中...", "orange"); }
